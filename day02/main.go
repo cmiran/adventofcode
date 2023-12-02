@@ -9,12 +9,6 @@ import (
 	"strconv"
 )
 
-const (
-	red   = 12
-	green = 13
-	blue  = 14
-)
-
 type Set struct {
 	Red   int
 	Blue  int
@@ -49,10 +43,8 @@ func main() {
 		line := fileScanner.Text()[5:]
 
 		content := splitLine(line, ": ")
-		id, _ := strconv.Atoi(content[0])
 		sets := splitLine(content[1], "; ")
 		s1 := Set{}
-		ok := true
 
 		for _, set := range sets {
 			cubes := splitLine(set, ", ")
@@ -77,15 +69,9 @@ func main() {
 					}
 				}
 			}
-
-			if s1.Red > red || s1.Green > green || s1.Blue > blue {
-				ok = false
-			}
 		}
 
-		if ok {
-			result += id
-		}
+    result += s1.Red * s1.Blue * s1.Green
 	}
 
 	fmt.Println(result)
