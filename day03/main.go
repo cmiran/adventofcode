@@ -10,14 +10,20 @@ import (
 	"unicode"
 )
 
-func isEnginePart(line string) bool {
-	for _, char := range line {
-		if char != '.' && !unicode.IsDigit(char) {
-			return true
+var re = regexp.MustCompile(`\d+`)
+
+func findEnginePart(line string, index int) []int {
+	gears := []int{}
+	idxs := re.FindAllStringIndex(line, -1)
+
+	for _, idx := range idxs {
+		if (index >= idx[0] && index <= idx[1]) || index+1 == idx[0] {
+			g, _ := strconv.Atoi(line[idx[0]:idx[1]])
+			gears = append(gears, g)
 		}
 	}
 
-	return false
+	return gears
 }
 
 func main() {
@@ -45,39 +51,43 @@ func main() {
 		matrix = append(matrix, line)
 	}
 
-	re := regexp.MustCompile(`\d+`)
-
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
-			if !unicode.IsDigit(rune(matrix[i][j])) {
+			if matrix[i][j] != '*' {
 				continue
 			}
 
-			num := re.FindString(matrix[i][j:])
-			x, _ := strconv.Atoi(num)
-			delta := len(num) - 1
+			gears := []int{}
 
-			a := j
-			if j > 0 {
-				a = j - 1
+			if j > 0 && unicode.IsDigit(rune(matrix[i][j-1])) {
+				nums := re.FindAllString(matrix[i][:j], -1)
+				g, _ := strconv.Atoi(nums[len(nums)-1])
+				gears = append(gears, g)
 			}
 
-			b := j + delta
-			if len(matrix[i])-j != delta+1 {
-				b = j + delta + 2
+			if j < len(matrix[i])-1 && unicode.IsDigit(rune(matrix[i][j+1])) {
+				num := re.FindString(matrix[i][j+1:])
+				g, _ := strconv.Atoi(num)
+				gears = append(gears, g)
 			}
 
-			if j > 0 && matrix[i][j-1] != '.' {
-				result += x
-			} else if len(matrix[i])-j != delta+1 && matrix[i][j+delta+1] != '.' {
-				result += x
-			} else if i > 0 && isEnginePart(matrix[i-1][a:b]) {
-				result += x
-			} else if i < len(matrix)-1 && isEnginePart(matrix[i+1][a:b]) {
-				result += x
+			if i > 0 {
+				g := findEnginePart(matrix[i-1], j)
+				if len(g) > 0 {
+					gears = append(gears, g...)
+				}
 			}
 
-			j += delta
+			if i < len(matrix)-1 {
+				g := findEnginePart(matrix[i+1], j)
+				if len(g) > 0 {
+					gears = append(gears, g...)
+				}
+			}
+
+			if len(gears) > 1 {
+				result += gears[0] * gears[1]
+			}
 		}
 	}
 
